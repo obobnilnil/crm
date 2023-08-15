@@ -8,6 +8,7 @@ import (
 
 type ServicePort interface {
 	GetSer() (*model.GetResponse, error)
+	GetOnebyDomain(domainUrl string) (*model.GetResponsebyDomain, error)
 	Addser(req model.Addrequest) (*int64, error)
 }
 
@@ -32,6 +33,16 @@ func (s serviceAdapter) GetSer() (*model.GetResponse, error) {
 	}
 
 	return &responses, nil
+}
+
+func (s serviceAdapter) GetOnebyDomain(domainUrl string) (*model.GetResponsebyDomain, error) {
+	response, err := s.r.GetbyDomain(domainUrl)
+	//log.Println("service", response)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	return response, nil
+
 }
 
 func (s serviceAdapter) Addser(req model.Addrequest) (*int64, error) {

@@ -18,6 +18,7 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/api/get", h.GetHan)
+	router.GET("/api/get/:domain", h.GetDomain)
 	router.POST("/add", h.AddHan)
 
 	err := router.Run(":9001")

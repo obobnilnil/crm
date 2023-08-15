@@ -8,6 +8,7 @@ import (
 
 type RepositoryPort interface {
 	Get() ([]model.BusinessType, []model.OrganizationType, []model.Relation, error)
+	GetbyDomain(domainUrl string) (*model.GetResponsebyDomain, error)
 	Add(req model.Addrequest) (*int64, error)
 }
 
@@ -25,7 +26,7 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 	var relations []model.Relation
 
 	// Query for business types
-	businessQuery := "SELECT id, businessName FROM businessType"
+	businessQuery := "SELECT businessID, businessName FROM businessType"
 	businessRows, err := r.db.Query(businessQuery)
 	if err != nil {
 		log.Println(err)
@@ -35,7 +36,7 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 
 	for businessRows.Next() {
 		var businessType model.BusinessType
-		err = businessRows.Scan(&businessType.ID, &businessType.BusinessName)
+		err = businessRows.Scan(&businessType.BusinessID, &businessType.BusinessName)
 		if err != nil {
 			log.Println(err)
 			return nil, nil, nil, err
@@ -44,7 +45,7 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 	}
 
 	// Query for organization types
-	organizationQuery := "SELECT id, organizationName FROM organizationType"
+	organizationQuery := "SELECT organizationID, organizationName FROM organizationType"
 	organizationRows, err := r.db.Query(organizationQuery)
 	if err != nil {
 		log.Println(err)
@@ -54,7 +55,7 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 
 	for organizationRows.Next() {
 		var organizationType model.OrganizationType
-		err = organizationRows.Scan(&organizationType.ID, &organizationType.OrganizationName)
+		err = organizationRows.Scan(&organizationType.OrganizationID, &organizationType.OrganizationName)
 		if err != nil {
 			log.Println(err)
 			return nil, nil, nil, err
@@ -63,7 +64,7 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 	}
 
 	// Query for relations
-	relationQuery := "SELECT id, relationType FROM relation"
+	relationQuery := "SELECT id, relationID FROM relation"
 	relationRows, err := r.db.Query(relationQuery)
 	if err != nil {
 		log.Println(err)
@@ -73,7 +74,7 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 
 	for relationRows.Next() {
 		var relation model.Relation
-		err = relationRows.Scan(&relation.ID, &relation.RelationType)
+		err = relationRows.Scan(&relation.RelationID, &relation.RelationType)
 		if err != nil {
 			log.Println(err)
 			return nil, nil, nil, err
@@ -84,9 +85,39 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 	return businessTypes, organizationTypes, relations, nil
 }
 
+func (r repositoryAdapter) GetbyDomain(domainUrl string) (*model.GetResponsebyDomain, error) {
+	query := `
+	SELECT
+		newOrganization.newOrganizationID,
+		organizationType.organizationName,
+		newOrganization.aliasName,
+		newOrganization.companyNameEN,
+		businessType.businessName,
+		newOrganization.domain,
+		newOrganization.webSite,
+		newOrganization.contact,
+		newOrganization.contactEmail,
+		newOrganization.contactPhone,
+		relation.relationType
+	FROM newOrganization
+	JOIN businessType ON newOrganization.businessID = businessType.businessID
+	JOIN organizationType ON newOrganization.organizationID = organizationType.organizationID
+	JOIN relation ON newOrganization.relationID = relation.relationID
+	WHERE newOrganization.domain = ?
+`
+	var responseDomain model.GetResponsebyDomain
+	err := r.db.QueryRow(query, domainUrl).Scan(&responseDomain.NewOrganizationID, &responseDomain.OrganizationID, &responseDomain.AliasName, &responseDomain.CompanyNameEN, &responseDomain.BusinessID, &responseDomain.Domain, &responseDomain.WebSite, &responseDomain.Contact, &responseDomain.ContactEmail, &responseDomain.ContactPhone, &responseDomain.RelationID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	//log.Println("respository", responseDomain)
+	return &responseDomain, nil
+}
+
 func (r repositoryAdapter) Add(req model.Addrequest) (*int64, error) {
-	query := "INSERT INTO newDeal (organizationType, aliasName, companyName, businessType, domain, webSite, contact, contactEmail, contactPhone, relation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	result, err := r.db.Exec(query, req.OrganizationType, req.AliasName, req.CompanyName, req.BusinessType, req.Domain, req.WebSite, req.Contact, req.ContactEmail, req.ContactPhone, req.Relation)
+	query := "INSERT INTO newOrganization (organizationID, aliasName, companyNameEN, businessID, domain, webSite, contact, contactEmail, contactPhone, relationID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	result, err := r.db.Exec(query, req.OrganizationID, req.AliasName, req.CompanyNameEN, req.BusinessID, req.Domain, req.WebSite, req.Contact, req.ContactEmail, req.ContactPhone, req.RelationID)
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,7 @@ import (
 
 type HandlerPort interface {
 	GetHan(c *gin.Context)
+	GetDomain(c *gin.Context)
 	AddHan(c *gin.Context)
 }
 
@@ -30,6 +31,17 @@ func (h handlerAdapter) GetHan(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
+func (h handlerAdapter) GetDomain(c *gin.Context) {
+	domainUrl := c.Param("domain")
+	//log.Println("handler", domainUrl)
+	data, err := h.s.GetOnebyDomain(domainUrl)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
 func (h handlerAdapter) AddHan(c *gin.Context) {
 	var req model.Addrequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,6 +49,7 @@ func (h handlerAdapter) AddHan(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	//log.Println("handler", req)
 	lastID, err := h.s.Addser(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
