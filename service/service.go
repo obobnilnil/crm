@@ -1,12 +1,14 @@
 package service
 
 import (
-	"followPtong/model"
-	"followPtong/repository"
+	"CRM/model"
+	"CRM/repository"
+	"log"
 )
 
 type ServicePort interface {
 	GetSer() (*model.GetResponse, error)
+	Addser(req model.Addrequest) (*int64, error)
 }
 
 type serviceAdapter struct {
@@ -30,4 +32,13 @@ func (s serviceAdapter) GetSer() (*model.GetResponse, error) {
 	}
 
 	return &responses, nil
+}
+
+func (s serviceAdapter) Addser(req model.Addrequest) (*int64, error) {
+	lastID, err := s.r.Add(req)
+	if err != nil {
+		log.Println(err.Error())
+		return lastID, err
+	}
+	return lastID, nil
 }

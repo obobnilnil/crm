@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"CRM/model"
 	"database/sql"
-	"followPtong/model"
 	"log"
 )
 
 type RepositoryPort interface {
 	Get() ([]model.BusinessType, []model.OrganizationType, []model.Relation, error)
+	Add(req model.Addrequest) (*int64, error)
 }
 
 type repositoryAdapter struct {
@@ -81,4 +82,14 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 	}
 
 	return businessTypes, organizationTypes, relations, nil
+}
+
+func (r repositoryAdapter) Add(req model.Addrequest) (*int64, error) {
+	query := "INSERT INTO newDeal (organizationType, aliasName, companyName, businessType, domain, webSite, contact, contactEmail, contactPhone, relation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	result, err := r.db.Exec(query, req.OrganizationType, req.AliasName, req.CompanyName, req.BusinessType, req.Domain, req.WebSite, req.Contact, req.ContactEmail, req.ContactPhone, req.Relation)
+	if err != nil {
+		return nil, err
+	}
+	lastID, _ := result.LastInsertId()
+	return &lastID, nil
 }

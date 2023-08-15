@@ -1,10 +1,10 @@
 package main
 
 import (
-	"followPtong/database"
-	"followPtong/handler"
-	"followPtong/repository"
-	"followPtong/service"
+	"CRM/database"
+	"CRM/handler"
+	"CRM/repository"
+	"CRM/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +18,7 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/api/get", h.GetHan)
+	router.POST("/add", h.AddHan)
 
 	err := router.Run(":9001")
 	if err != nil {

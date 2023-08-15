@@ -1,4 +1,4 @@
-module followPtong
+module CRM
 
 go 1.20
 
