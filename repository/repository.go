@@ -64,7 +64,7 @@ func (r repositoryAdapter) Get() ([]model.BusinessType, []model.OrganizationType
 	}
 
 	// Query for relations
-	relationQuery := "SELECT id, relationID FROM relation"
+	relationQuery := "SELECT relationID, relationType FROM relation"
 	relationRows, err := r.db.Query(relationQuery)
 	if err != nil {
 		log.Println(err)
